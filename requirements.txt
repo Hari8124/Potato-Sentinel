@@ -1,7 +1,0 @@
-Flask
-Werkzeug
-tensorflow-cpu
-joblib
-numpy
-scikit-learn
-gunicorn
