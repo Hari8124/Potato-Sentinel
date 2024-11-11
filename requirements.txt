@@ -4,3 +4,4 @@ tensorflow
 joblib
 numpy
 gunicorn
+jinja2
