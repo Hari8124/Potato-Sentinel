@@ -5,4 +5,4 @@ joblib
 numpy
 gunicorn
 jinja2
-scikit-learn
+scikit-learn==0.24.2
