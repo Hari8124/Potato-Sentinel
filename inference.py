@@ -3,7 +3,7 @@ import joblib
 import numpy as np
 
 # Load the models and scaler
-ensemble_model = tf.keras.models.load_model(r'D:\Potato sentinel - Copy_LAST\ensemble_model.keras')
+ensemble_model = tf.keras.models.load_model(ensemble_model.keras)
 rf_model = joblib.load('rf_model.pkl')
 scaler = joblib.load('scaler.pkl')
 
