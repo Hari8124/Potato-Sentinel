@@ -5,3 +5,4 @@ joblib
 numpy
 gunicorn
 jinja2
+scikit-learn
