@@ -19,7 +19,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 # Load the models and scaler
 try:
     logger.debug("Loading ensemble model...")
-    ensemble_model = tf.keras.models.load_model('ensemble_model.keras')
+    ensemble_model = tf.keras.models.load_model('ensemble_model.h5')
     logger.debug("Ensemble model loaded successfully.")
 except Exception as e:
     logger.error(f"Error loading ensemble model: {e}")
