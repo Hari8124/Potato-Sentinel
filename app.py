@@ -1,9 +1,11 @@
 from flask import Flask, render_template, request, redirect
 import os
 from werkzeug.utils import secure_filename
-from inference import predict_image, get_class_description  
 from io import BytesIO
 import base64
+import tensorflow as tf
+import joblib
+import numpy as np
 import logging
 
 # Set up logging
@@ -14,10 +16,77 @@ app = Flask(__name__)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
+# Load the models and scaler
+try:
+    logger.debug("Loading ensemble model...")
+    ensemble_model = tf.keras.models.load_model('ensemble_model.keras')
+    logger.debug("Ensemble model loaded successfully.")
+except Exception as e:
+    logger.error(f"Error loading ensemble model: {e}")
+    raise
+
+try:
+    logger.debug("Loading random forest model...")
+    rf_model = joblib.load('rf_model.pkl')
+    logger.debug("Random Forest model loaded successfully.")
+except Exception as e:
+    logger.error(f"Error loading random forest model: {e}")
+    raise
+
+try:
+    logger.debug("Loading scaler...")
+    scaler = joblib.load('scaler.pkl')
+    logger.debug("Scaler loaded successfully.")
+except Exception as e:
+    logger.error(f"Error loading scaler: {e}")
+    raise
+
+CLASS_NAMES = ['Potato___Early_blight', 'Potato___healthy', 'Potato___Late_blight']
+
+CLASS_DESCRIPTIONS = {
+    'Potato___Early_blight': 'Early blight description...',
+    'Potato___healthy': 'Healthy description...',
+    'Potato___Late_blight': 'Late blight description...'
+}
+
 def allowed_file(filename):
     """Check if the uploaded file has a valid extension."""
     logger.debug(f"Checking file extension for: {filename}")
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def preprocess_image(img_stream):
+    try:
+        logger.debug("Preprocessing image")
+        img = tf.keras.preprocessing.image.load_img(img_stream, target_size=(256, 256))
+        img_array = tf.keras.preprocessing.image.img_to_array(img)
+        img_array = np.expand_dims(img_array, axis=0)
+        return img_array
+    except Exception as e:
+        logger.error(f"Error during image preprocessing: {e}")
+        raise
+
+def predict_image(img_stream):
+    try:
+        logger.debug("Starting prediction on image...")
+        img_array = preprocess_image(img_stream)
+        cnn_features = ensemble_model.predict(img_array)
+        rf_features = scaler.transform(cnn_features)
+        rf_predictions = rf_model.predict(rf_features)
+        predicted_class = CLASS_NAMES[rf_predictions[0]]
+        logger.debug(f"Prediction result: {predicted_class}")
+        return predicted_class
+    except Exception as e:
+        logger.error(f"Error during prediction: {e}")
+        raise
+
+def get_class_description(predicted_class):
+    try:
+        logger.debug(f"Fetching description for class: {predicted_class}")
+        description = CLASS_DESCRIPTIONS.get(predicted_class, "Description not available.")
+        return description
+    except Exception as e:
+        logger.error(f"Error during description retrieval: {e}")
+        raise
 
 @app.route('/')
 def index_page():
@@ -85,14 +154,11 @@ def upload_file():
             logger.debug(f"Prediction received: {prediction}")
 
             # Convert prediction to user-friendly name
-            if prediction == 'Potato___Early_blight':
-                friendly_class_name = 'Early Blight'
-            elif prediction == 'Potato___healthy':
-                friendly_class_name = 'Healthy'
-            elif prediction == 'Potato___Late_blight':
-                friendly_class_name = 'Late Blight'
-            else:
-                friendly_class_name = 'Unknown'  # Fallback for unexpected classes
+            friendly_class_name = {
+                'Potato___Early_blight': 'Early Blight',
+                'Potato___healthy': 'Healthy',
+                'Potato___Late_blight': 'Late Blight'
+            }.get(prediction, 'Unknown')
             logger.debug(f"Friendly class name: {friendly_class_name}")
 
             description = get_class_description(prediction)
@@ -108,6 +174,6 @@ def upload_file():
     else:
         logger.error(f"Invalid file extension: {file.filename}")
         return redirect(request.url)
-    
+
 if __name__ == '__main__':
     app.run(debug=True)
