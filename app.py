@@ -56,10 +56,20 @@ def allowed_file(filename):
 
 def preprocess_image(img_stream):
     try:
-        logger.debug("Preprocessing image")
+        logger.debug("Starting image preprocessing.")
+        
+        # Load image and resize it to the target size
         img = tf.keras.preprocessing.image.load_img(img_stream, target_size=(256, 256))
+        logger.debug("Image loaded and resized to (256, 256).")
+        
+        # Convert image to array
         img_array = tf.keras.preprocessing.image.img_to_array(img)
+        logger.debug(f"Image converted to array with shape: {img_array.shape} and dtype: {img_array.dtype}.")
+        
+        # Expand dimensions for batch processing
         img_array = np.expand_dims(img_array, axis=0)
+        logger.debug(f"Image array shape after expanding dimensions: {img_array.shape}.")
+        
         return img_array
     except Exception as e:
         logger.error(f"Error during image preprocessing: {e}")
