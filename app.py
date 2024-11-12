@@ -78,16 +78,38 @@ def preprocess_image(img_stream):
 def predict_image(img_stream):
     try:
         logger.debug("Starting prediction on image...")
+
+        # Step 1: Preprocess the image
+        logger.debug("Starting image preprocessing...")
         img_array = preprocess_image(img_stream)
+        logger.debug(f"Completed image preprocessing. Resulting shape: {img_array.shape}, dtype: {img_array.dtype}")
+
+        # Step 2: Make predictions with the ensemble model
+        logger.debug("Starting prediction with the ensemble (CNN) model...")
         cnn_features = ensemble_model.predict(img_array)
+        logger.debug(f"Completed ensemble model prediction. Output shape: {cnn_features.shape}")
+
+        # Step 3: Transform CNN features for the random forest model
+        logger.debug("Starting feature scaling with scaler for Random Forest model...")
         rf_features = scaler.transform(cnn_features)
+        logger.debug(f"Completed feature scaling. Scaled features shape: {rf_features.shape}, sample values: {rf_features[:5]}")
+
+        # Step 4: Make predictions with the random forest model
+        logger.debug("Starting prediction with the Random Forest model...")
         rf_predictions = rf_model.predict(rf_features)
+        logger.debug(f"Completed Random Forest prediction. Prediction output: {rf_predictions}")
+
+        # Step 5: Map prediction to class name
+        logger.debug("Mapping prediction to class name...")
         predicted_class = CLASS_NAMES[rf_predictions[0]]
-        logger.debug(f"Prediction result: {predicted_class}")
+        logger.debug(f"Prediction result mapped to class name: {predicted_class}")
+
         return predicted_class
+
     except Exception as e:
         logger.error(f"Error during prediction: {e}")
         raise
+
 
 def get_class_description(predicted_class):
     try:
