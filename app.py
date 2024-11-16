@@ -16,32 +16,6 @@ app = Flask(__name__)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
-# Load the models and scaler
-try:
-    logger.debug("Loading ensemble model...")
-    ensemble_model = tf.keras.models.load_model('ensemble_model.h5')
-    logger.debug("Ensemble model loaded successfully.")
-    ensemble_model.summary()
-except Exception as e:
-    logger.error(f"Error loading ensemble model: {e}")
-    raise
-
-try:
-    logger.debug("Loading random forest model...")
-    rf_model = joblib.load('rf_model.pkl')
-    logger.debug("Random Forest model loaded successfully.")
-except Exception as e:
-    logger.error(f"Error loading random forest model: {e}")
-    raise
-
-try:
-    logger.debug("Loading scaler...")
-    scaler = joblib.load('scaler.pkl')
-    logger.debug("Scaler loaded successfully.")
-except Exception as e:
-    logger.error(f"Error loading scaler: {e}")
-    raise
-
 CLASS_NAMES = ['Potato___Early_blight', 'Potato___healthy', 'Potato___Late_blight']
 
 CLASS_DESCRIPTIONS = {
@@ -76,7 +50,7 @@ def preprocess_image(img_stream):
         logger.error(f"Error during image preprocessing: {e}")
         raise
 
-def predict_image(img_stream):
+def predict_image(img_stream, ensemble_model, rf_model, scaler):
     try:
         logger.debug("Starting prediction on image...")
 
@@ -110,7 +84,6 @@ def predict_image(img_stream):
     except Exception as e:
         logger.error(f"Error during prediction: {e}")
         raise
-
 
 def get_class_description(predicted_class):
     try:
@@ -155,8 +128,9 @@ def tnc_page():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    """Handle the file upload and run prediction."""
+    """Handle the file upload, load models, and run prediction."""
     logger.debug("Handling file upload")
+    
     if 'file' not in request.files:
         logger.error("No file part in the request")
         return redirect(request.url)
@@ -177,13 +151,26 @@ def upload_file():
         logger.debug(f"File read into memory: {filename}")
 
         try:
+            # Reload models every time an image is uploaded
+            logger.debug("Loading ensemble model...")
+            ensemble_model = tf.keras.models.load_model('ensemble_model.h5')
+            logger.debug("Ensemble model loaded successfully.")
+
+            logger.debug("Loading random forest model...")
+            rf_model = joblib.load('rf_model.pkl')
+            logger.debug("Random Forest model loaded successfully.")
+
+            logger.debug("Loading scaler...")
+            scaler = joblib.load('scaler.pkl')
+            logger.debug("Scaler loaded successfully.")
+            
             # Read the image and convert to base64
             image_data = base64.b64encode(file_stream.getvalue()).decode('utf-8')
             image_url = f"data:image/jpeg;base64,{image_data}"
             logger.debug("Image converted to base64")
 
             # Run the prediction on the in-memory file stream
-            prediction = predict_image(file_stream)
+            prediction = predict_image(file_stream, ensemble_model, rf_model, scaler)
             logger.debug(f"Prediction received: {prediction}")
 
             # Convert prediction to user-friendly name
