@@ -19,10 +19,30 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 CLASS_NAMES = ['Potato___Early_blight', 'Potato___healthy', 'Potato___Late_blight']
 
 CLASS_DESCRIPTIONS = {
-    'Potato___Early_blight': 'Early blight description...',
-    'Potato___healthy': 'Healthy description...',
-    'Potato___Late_blight': 'Late blight description...'
+    'Potato___Early_blight': '''
+    Early Blight is a common fungal disease caused by *Alternaria solani* that affects potato plants. 
+    It typically starts as small, dark spots with concentric rings on older leaves, often leading to yellowing and premature leaf drop. 
+    The disease can progress rapidly in humid, warm conditions, significantly reducing potato yields. 
+    Early blight can also lead to the formation of lesions on tubers, affecting their marketability and storage life. 
+    Proper management includes crop rotation, resistant varieties, and timely fungicide applications.
+    ''',
+
+    'Potato___healthy': '''
+    Healthy potato plants exhibit vibrant green leaves and robust growth. The plant's foliage is free from any spots, discolorations, or lesions, 
+    indicating that it is not affected by any fungal or bacterial diseases. A healthy potato plant has well-developed stems and roots, 
+    and the tubers are firm, with no signs of decay, discoloration, or other diseases. Proper soil nutrition, adequate irrigation, 
+    and pest control are crucial for maintaining plant health and maximizing yield.
+    ''',
+
+    'Potato___Late_blight': '''
+    Late Blight, caused by the oomycete *Phytophthora infestans*, is one of the most destructive diseases in potato cultivation. 
+    It manifests as dark, water-soaked lesions on leaves and stems, which quickly expand and result in rapid tissue death. 
+    This disease thrives in cool, wet conditions, and if left unchecked, can lead to complete crop loss. 
+    Infected tubers may develop soft rot and become unfit for consumption or storage. Effective management strategies include 
+    resistant cultivars, early detection, and regular fungicide applications, especially during rainy periods.
+    '''
 }
+
 
 def allowed_file(filename):
     """Check if the uploaded file has a valid extension."""
